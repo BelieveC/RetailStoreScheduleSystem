@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
-
 public class StoreShiftsTableDataPopulator {
 
     private static final int numberOfRecords = 100;
@@ -12,11 +11,8 @@ public class StoreShiftsTableDataPopulator {
     private static final int endOfShift = 20;
     private static final int maxStoreDuration = endOfShift - startOfShift;
     private static final int maxShiftDateOffset = 7;
-    private static final int maxNoOfShiftsPerRoutine = 3;
-
 
     public static void main(String args[]) throws SQLException {
-
         Connection connection = createDBConnection();
         createDB(connection);
         populateDB(connection);
@@ -55,10 +51,24 @@ public class StoreShiftsTableDataPopulator {
     private static void populateDB(Connection connection) throws SQLException {
         Statement statement = null;
         statement = connection.createStatement();
-        for (int shift_id = 0; shift_id < numberOfRecords; shift_id++) {
+        List<String> storeRoutineList = Arrays.asList("gsr", "gor", "grr", "cscr", "cor", "cftcr");
+        Map<String, Integer> storeRoutineCountMap = new LinkedHashMap<String, Integer>() {
+            {
+                put("gsr", 1);
+                put("gor", 1);
+                put("grr", 1);
+                put("cscr", 1);
+                put("cor", 1);
+                put("cftcr", 1);
+            }
+        };
+        Random random = new Random();
 
+        for (int shift_id = 0; shift_id < numberOfRecords; shift_id++) {
             StoreShift storeShift = getRandomShift();
-            String store_routine_id = getRandomStoreRoutineId();
+            String store_routine = storeRoutineList.get(random.nextInt(storeRoutineList.size()));
+            String store_routine_id = store_routine + '_' + storeRoutineCountMap.get(store_routine);
+            storeRoutineCountMap.put(store_routine, storeRoutineCountMap.get(store_routine) + 1);
             String sql = "INSERT INTO \"RetailStoreScheduleSystem\".store_shifts (ID,start,finish,duration,store_routine_id) "
                     + "VALUES (" + shift_id + ",'" + storeShift.startTime + "','" + storeShift.endTime + "'," + storeShift.duration + ",\'" + store_routine_id + "' );";
             System.out.println(sql);
@@ -93,17 +103,9 @@ public class StoreShiftsTableDataPopulator {
         return storeShift;
     }
 
-    private static String getRandomStoreRoutineId() {
-        Random random = new Random();
-        List<String> storeRoutine = Arrays.asList("gsr", "gor", "grr", "cscr", "cor", "cftcr");
-        return storeRoutine.get(random.nextInt(storeRoutine.size())) + "_" + random.nextInt(maxNoOfShiftsPerRoutine);
-    }
-
     private static class StoreShift {
         String startTime;
         String endTime;
         Integer duration;
     }
-
-
 }
