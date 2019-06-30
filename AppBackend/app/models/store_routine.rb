@@ -1,0 +1,2 @@
+class StoreRoutine < ApplicationRecord
+end
